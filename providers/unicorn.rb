@@ -31,7 +31,14 @@ action :before_compile do
   end
 
   new_resource.bundle_command rails_resource && rails_resource.bundle_command
-  new_resource.restart_command "/etc/init.d/#{new_resource.name} hup" if !new_resource.restart_command
+
+  unless new_resource.restart_command
+    new_resource.restart_command do
+      execute "/etc/init.d/#{new_resource.name} hup" do
+        user "root"
+      end
+    end
+  end
 
 end
 
@@ -58,7 +65,8 @@ action :before_restart do
   end
 
   runit_service new_resource.name do
-    template_name 'unicorn'
+    run_template_name 'unicorn'
+    log_template_name 'unicorn'
     owner new_resource.owner if new_resource.owner
     group new_resource.group if new_resource.group
 
@@ -70,7 +78,6 @@ action :before_restart do
       :rails_env => new_resource.environment_name,
       :smells_like_rack => ::File.exists?(::File.join(new_resource.path, "current", "config.ru"))
     )
-    run_restart false
   end
 
 end
