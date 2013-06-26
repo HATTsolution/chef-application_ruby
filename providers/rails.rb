@@ -123,12 +123,11 @@ action :before_symlink do
 
   if new_resource.precompile_assets
     command = "rake assets:precompile"
-    command = "#{bundle_command} exec #{command}" if new_resource.bundler
+    command = "#{bundle_command} exec #{command} RAILS_ENV=#{new_resource.environment_name}" if new_resource.bundler
     rvm_shell command do
       code command
       cwd new_resource.release_path
       user new_resource.owner
-      environment new_resource.environment
     end
   end
 
